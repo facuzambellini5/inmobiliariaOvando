@@ -18,11 +18,11 @@ CREATE TABLE properties
     status       VARCHAR(20)      NOT NULL DEFAULT 'DISPONIBLE',
 
     -- Casa / Departamento
-    ambientes    SMALLINT,
+    rooms        SMALLINT,
     bedrooms     SMALLINT,
     bathrooms    SMALLINT,
-    garage       BOOLEAN,
-    patio        BOOLEAN,
+    has_garage   BOOLEAN,
+    has_patio    BOOLEAN,
 
     -- Terreno
     surface      NUMERIC(12, 2),
@@ -63,7 +63,7 @@ CREATE TABLE properties
     -- Campos de vivienda solo en Casa/Departamento
     CONSTRAINT chk_house_fields CHECK (
         type IN ('CASA', 'DEPARTAMENTO')
-            OR (ambientes IS NULL AND bedrooms IS NULL AND bathrooms IS NULL AND garage IS NULL AND patio IS NULL)
+            OR (rooms IS NULL AND bedrooms IS NULL AND bathrooms IS NULL AND has_garage IS NULL AND has_patio IS NULL)
         ),
     -- Campos de terreno solo en Terreno
     CONSTRAINT chk_land_fields CHECK (
@@ -101,15 +101,6 @@ CREATE INDEX idx_photos_property ON property_photos (property_id, position);
 -- ============================================
 -- ADMIN USERS
 -- ============================================
--- id como BIGINT en vez de UUID: nunca se expone en una URL pública
--- (solo se usa internamente para el login del panel admin), así que
--- no hace falta pagar el costo extra de un UUID acá.
---
--- enabled / account_non_locked: estos dos existen específicamente porque
--- Spring Security los pide en la interfaz UserDetails (isEnabled() /
--- isAccountNonLocked()). Con esto podés, por ejemplo, desactivar el acceso
--- de alguien sin borrar su usuario, o bloquearlo después de X intentos
--- fallidos de login sin tocar el resto de sus datos.
 CREATE TABLE admin_users
 (
     id                 UUID PRIMARY KEY          DEFAULT gen_random_uuid(),
@@ -117,6 +108,5 @@ CREATE TABLE admin_users
     password_hash      TEXT        NOT NULL,
     enabled            BOOLEAN     NOT NULL DEFAULT TRUE,
     account_non_locked BOOLEAN     NOT NULL DEFAULT TRUE,
-    created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-    last_login_at      TIMESTAMPTZ
+    created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
