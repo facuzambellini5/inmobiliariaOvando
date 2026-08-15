@@ -1,6 +1,7 @@
 package com.example.InmobiliariaOvando.dtos;
 
 import com.example.InmobiliariaOvando.enums.*;
+import com.example.InmobiliariaOvando.models.Property;
 import com.example.InmobiliariaOvando.models.PropertyPhoto;
 
 import java.math.BigDecimal;
@@ -22,15 +23,44 @@ public record PropertyResponse(
         Double lat,
         Double lng,
         PropertyStatus status,
-        Short ambientes,
+        Short rooms,
         Short bedrooms,
         Short bathrooms,
-        Boolean garage,
-        Boolean patio,
+        Boolean hasGarage,
+        Boolean hasPatio,
         BigDecimal surface,
         TerrainType terrainType,
         Instant createdAt,
         Instant updatedAt,
-        List<PropertyPhoto> images
+        //TODO VER SI DEVOLVER STRINGS O PROPERTYPHOTO POR EL ORDEN
+        List<String> images
 ) {
+
+    public PropertyResponse(Property property) {
+        this(
+                property.getId(),
+                property.getTitle(),
+                property.getDescription(),
+                property.getType(),
+                property.getOperation(),
+                property.getSalePrice(),
+                property.getRentPrice(),
+                property.getCurrency(),
+                property.getAddress(),
+                property.getZone(),
+                property.getLat(),
+                property.getLng(),
+                property.getStatus(),
+                property.getRooms(),
+                property.getBedrooms(),
+                property.getBathrooms(),
+                property.getHasGarage(),
+                property.getHasPatio(),
+                property.getSurface(),
+                property.getTerrainType(),
+                property.getCreatedAt(),
+                property.getUpdatedAt(),
+                property.getPhotos().stream().map(PropertyPhoto::getUrl).toList()
+        );
+    }
 }

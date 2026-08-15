@@ -1,12 +1,10 @@
 package com.example.InmobiliariaOvando.dtos;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import com.example.InmobiliariaOvando.enums.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.web.multipart.MultipartFile;
 
 public record PropertyRequest(
 
@@ -41,17 +39,14 @@ public record PropertyRequest(
         Double lng,
 
         // Campos de Casa/Departamento (nullable, solo aplican a esos tipos)
-        Short ambientes,
+        Short rooms,
         Short bedrooms,
         Short bathrooms,
-        Boolean garage,
-        Boolean patio,
+        Boolean hasGarage,
+        Boolean hasPatio,
 
         // Campos de Terreno (nullable, solo aplica a ese tipo)
         BigDecimal surface,
-        TerrainType terrainType,
-
-        //TODO ver si hacer validación de que al menos haya una imagen
-        List<MultipartFile> images
+        TerrainType terrainType
 ) {
 }
