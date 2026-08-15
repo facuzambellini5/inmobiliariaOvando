@@ -1,0 +1,50 @@
+package com.example.InmobiliariaOvando.services;
+
+import com.example.InmobiliariaOvando.dtos.LoginRequest;
+import com.example.InmobiliariaOvando.dtos.LoginResponse;
+import com.example.InmobiliariaOvando.models.AdminUser;
+import com.example.InmobiliariaOvando.repositories.IAdminUserRepository;
+import com.example.InmobiliariaOvando.security.JwtService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AuthService {
+
+    private final AuthenticationManager authenticationManager;
+    private final IAdminUserRepository adminUserRepo;
+    private final JwtService jwtService;
+
+    public AuthService(AuthenticationManager authenticationManager,
+                       IAdminUserRepository adminUserRepo,
+                       JwtService jwtService) {
+        this.authenticationManager = authenticationManager;
+        this.adminUserRepo = adminUserRepo;
+        this.jwtService = jwtService;
+    }
+
+    @Transactional(readOnly = true)
+    public LoginResponse login(LoginRequest request) {
+        // Valida usuario + contraseña: por
+        // detrás, Spring usa el DaoAuthenticationProvider de la
+        // SecurityConfig, que busca el AdminUser y compara el hash con
+        // BCrypt. Si algo no matchea (usuario no existe O contraseña mal),
+        // tira BadCredentialsException -> la atrapa el GlobalExceptionHandler
+        // y le devuelve al frontend un 401 genérico, sin decir cuál de las
+        // dos cosas falló.
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        );
+
+        // Si llega hasta acá, authenticate() ya confirmó que el usuario
+        // existe, así que este findByUsername no debería fallar nunca.
+        AdminUser user = adminUserRepo.findByUsername(request.username()).orElseThrow();
+
+        String token = jwtService.generateToken(user);
+        long expiresInSeconds = jwtService.getExpirationMs() / 1000;
+
+        return new LoginResponse(token, "Bearer", expiresInSeconds, user.getUsername());
+    }
+}
