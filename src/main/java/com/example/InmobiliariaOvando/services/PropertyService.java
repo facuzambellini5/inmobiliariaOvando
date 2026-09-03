@@ -1,14 +1,16 @@
 package com.example.InmobiliariaOvando.services;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.example.InmobiliariaOvando.dtos.PropertyRequest;
 import com.example.InmobiliariaOvando.dtos.PropertyResponse;
+import com.example.InmobiliariaOvando.enums.PropertyStatus;
 import com.example.InmobiliariaOvando.enums.PropertyType;
 import com.example.InmobiliariaOvando.exceptions.EntityNotFoundException;
 import com.example.InmobiliariaOvando.models.Property;
 import com.example.InmobiliariaOvando.repositories.IPropertyRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,8 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class PropertyService {
 
     private final IPropertyRepository propertyRepo;
+    private final PhotoService photoService;
 
-    public PropertyService(IPropertyRepository propertyRepo) {
+    public PropertyService(IPropertyRepository propertyRepo,
+                           PhotoService photoService) {
+        this.photoService = photoService;
         this.propertyRepo = propertyRepo;
     }
 
@@ -36,11 +41,15 @@ public class PropertyService {
     }
 
     @Transactional(readOnly = true)
-    public List<PropertyResponse> findAll() {
-        return propertyRepo.findAll()
-                .stream()
-                .map(PropertyResponse::new)
-                .toList();
+    public Page<PropertyResponse> findAll(Pageable pageable) {
+        return propertyRepo.findAll(pageable)
+                .map(PropertyResponse::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PropertyResponse> findByStatus(PropertyStatus status,Pageable pageable) {
+        return propertyRepo.findByStatus(status, pageable)
+                .map(PropertyResponse::new);
     }
 
     @Transactional
@@ -54,10 +63,11 @@ public class PropertyService {
 
     @Transactional
     public void delete(UUID id) {
-        if (!propertyRepo.existsById(id)) {
-            throw new EntityNotFoundException("Property", "id", id.toString());
-        }
-        propertyRepo.deleteById(id);
+        Property property = propertyRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Property", "id", id.toString()));
+
+        photoService.deleteAllForProperty(property); //Eliminar todas las imagenes asociadas a la propiedad antes de eliminarla.
+        propertyRepo.delete(property);
     }
 
     private void applyRequest(Property property, PropertyRequest request) {
@@ -86,5 +96,7 @@ public class PropertyService {
 
         property.setSurface(isLand ? request.surface() : null);
         property.setTerrainType(isLand ? request.terrainType() : null);
+
+        property.setStatus(request.status());
     }
 }

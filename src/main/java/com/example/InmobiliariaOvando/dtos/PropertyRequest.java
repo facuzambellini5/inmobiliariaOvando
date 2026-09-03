@@ -47,6 +47,9 @@ public record PropertyRequest(
 
         // Campos de Terreno (nullable, solo aplica a ese tipo)
         BigDecimal surface,
-        TerrainType terrainType
+        TerrainType terrainType,
+
+        //TODO VER
+        PropertyStatus status
 ) {
 }

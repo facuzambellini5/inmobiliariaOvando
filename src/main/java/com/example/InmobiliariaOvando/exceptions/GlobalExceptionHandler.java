@@ -19,9 +19,12 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -84,6 +87,34 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         String mensaje = "El parámetro '" + ex.getName() + "' tiene un formato inválido";
         return build(HttpStatus.BAD_REQUEST, mensaje, request);
+    }
+
+    // Una regla de negocio: (ej: ya tiene 15 fotos,
+    // el archivo no es una imagen válida). Ver BusinessRuleException.
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ApiErrorResponse> handleBusinessRule(BusinessRuleException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // El archivo que mandaron en un upload supera el límite configurado
+    // en spring.servlet.multipart.max-file-size. Sin este handler, esto
+    // explota como 500 en vez de avisar claramente qué pasó.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "El archivo supera el tamaño máximo permitido (10MB)", request);
+    }
+
+    // Falta un @RequestParam obligatorio (ej: mandar el POST de subir
+    // foto sin la parte "file" en el multipart).
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiErrorResponse> handleMissingParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Falta un parámetro obligatorio: " + ex.getParameterName(), request);
+    }
+
+    //Cuando falta un multipart en un endpoint que lo requiere.
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiErrorResponse> handleMultipartException(MultipartException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     // ============================================

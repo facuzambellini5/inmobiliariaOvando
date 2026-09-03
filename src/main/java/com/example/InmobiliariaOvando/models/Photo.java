@@ -24,7 +24,7 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @Entity
 @Table(name = "property_photos")
-public class PropertyPhoto {
+public class Photo {
 
     @Id
     @GeneratedValue
@@ -40,6 +40,9 @@ public class PropertyPhoto {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String url;
+
+    @Column(name = "public_id", nullable = false, unique = true, columnDefinition = "TEXT")
+    private String publicId;
 
     @Column(nullable = false)
     private Short position;

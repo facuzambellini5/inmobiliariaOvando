@@ -95,5 +95,5 @@ public class Property {
     // sacás una foto de esta lista y guardás, se borra de la base sola.
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
-    private List<PropertyPhoto> photos = new ArrayList<>();
+    private List<Photo> photos = new ArrayList<>();
 }

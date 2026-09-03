@@ -2,7 +2,6 @@ package com.example.InmobiliariaOvando.dtos;
 
 import com.example.InmobiliariaOvando.enums.*;
 import com.example.InmobiliariaOvando.models.Property;
-import com.example.InmobiliariaOvando.models.PropertyPhoto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -33,7 +32,7 @@ public record PropertyResponse(
         Instant createdAt,
         Instant updatedAt,
         //TODO VER SI DEVOLVER STRINGS O PROPERTYPHOTO POR EL ORDEN
-        List<String> images
+        List<PhotoResponse> images
 ) {
 
     public PropertyResponse(Property property) {
@@ -60,7 +59,7 @@ public record PropertyResponse(
                 property.getTerrainType(),
                 property.getCreatedAt(),
                 property.getUpdatedAt(),
-                property.getPhotos().stream().map(PropertyPhoto::getUrl).toList()
+                property.getPhotos().stream().map(PhotoResponse::new).toList()
         );
     }
 }

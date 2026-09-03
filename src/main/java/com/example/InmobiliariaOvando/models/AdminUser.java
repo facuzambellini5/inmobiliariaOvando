@@ -73,4 +73,10 @@ public class AdminUser implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return UserDetails.super.isCredentialsNonExpired();
     }
+
+    //Constructor para el seed
+    public AdminUser(String username, String passwordHash) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+    }
 }
