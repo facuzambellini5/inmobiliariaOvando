@@ -31,7 +31,6 @@ public record PropertyResponse(
         TerrainType terrainType,
         Instant createdAt,
         Instant updatedAt,
-        //TODO VER SI DEVOLVER STRINGS O PROPERTYPHOTO POR EL ORDEN
         List<PhotoResponse> images
 ) {
 

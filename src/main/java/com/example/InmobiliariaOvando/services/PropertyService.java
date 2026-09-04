@@ -2,6 +2,7 @@ package com.example.InmobiliariaOvando.services;
 
 import java.util.UUID;
 
+import com.example.InmobiliariaOvando.dtos.PropertyFilterRequest;
 import com.example.InmobiliariaOvando.dtos.PropertyRequest;
 import com.example.InmobiliariaOvando.dtos.PropertyResponse;
 import com.example.InmobiliariaOvando.enums.PropertyStatus;
@@ -9,6 +10,7 @@ import com.example.InmobiliariaOvando.enums.PropertyType;
 import com.example.InmobiliariaOvando.exceptions.EntityNotFoundException;
 import com.example.InmobiliariaOvando.models.Property;
 import com.example.InmobiliariaOvando.repositories.IPropertyRepository;
+import com.example.InmobiliariaOvando.repositories.specifications.PropertySpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,9 +42,14 @@ public class PropertyService {
                 .orElseThrow(() -> new EntityNotFoundException("Property", "id", id.toString())));
     }
 
+    // El filtro puede venir "vacío" (todos sus campos en null): el
+    // listado sin filtros del admin sigue pasando por acá y se comporta
+    // exactamente igual que antes, ya que PropertySpecifications ignora
+    // los campos no provistos.
     @Transactional(readOnly = true)
-    public Page<PropertyResponse> findAll(Pageable pageable) {
-        return propertyRepo.findAll(pageable)
+    public Page<PropertyResponse> findAll(Pageable pageable, PropertyFilterRequest filter) {
+        return propertyRepo
+                .findAll(PropertySpecifications.build(filter), pageable)
                 .map(PropertyResponse::new);
     }
 
@@ -66,7 +73,7 @@ public class PropertyService {
         Property property = propertyRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Property", "id", id.toString()));
 
-        photoService.deleteAllForProperty(property); //Eliminar todas las imagenes asociadas a la propiedad antes de eliminarla.
+        photoService.deleteAllForProperty(property);
         propertyRepo.delete(property);
     }
 
@@ -86,8 +93,6 @@ public class PropertyService {
         boolean isResidential = request.type() == PropertyType.CASA || request.type() == PropertyType.DEPARTAMENTO;
         boolean isLand = request.type() == PropertyType.TERRENO;
 
-        // Solo completamos los campos del tipo que corresponde; el resto
-        // queda en null, tal como lo exige el CHECK de la base.
         property.setRooms(isResidential ? request.rooms() : null);
         property.setBedrooms(isResidential ? request.bedrooms() : null);
         property.setBathrooms(isResidential ? request.bathrooms() : null);

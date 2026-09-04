@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.InmobiliariaOvando.dtos.PropertyFilterRequest;
 import com.example.InmobiliariaOvando.dtos.PropertyRequest;
 import com.example.InmobiliariaOvando.dtos.PropertyResponse;
 import com.example.InmobiliariaOvando.enums.PropertyStatus;
@@ -37,10 +38,17 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.findById(id));
     }
 
+    // Todos los filtros son opcionales: sin ninguno, se comporta como el
+    // listado completo que ya usa el panel de admin. El sitio público
+    // (property-browser) manda los que el visitante haya elegido.
+    // @ModelAttribute bindea los query params (?type=...&operation=...)
+    // directamente a los campos del record, sin tener que declarar un
+    // @RequestParam por cada filtro.
     @GetMapping
     public ResponseEntity<Page<PropertyResponse>> findAll(
-            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(propertyService.findAll(pageable));
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable,
+            @ModelAttribute PropertyFilterRequest filter) {
+        return ResponseEntity.ok(propertyService.findAll(pageable, filter));
     }
 
     @GetMapping("/status")
